@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test Fuel Quality</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="test-container">
+        <h2>Test Fuel Quality</h2>
+
+        <div class="fuel-type">
+            <label><input type="radio" name="fuel" checked> Petrol</label>
+            <label><input type="radio" name="fuel"> Diesel</label>
+            <label><input type="radio" name="fuel"> Kerosene</label>
+        </div>
+
+        <div class="form-box">
+            <p><strong>Set the Parameters:</strong></p>
+
+            <div class="form-group">
+                <label>Viscosity:</label>
+                <input type="text">
+                <span class="unit">cSt</span>
+            </div>
+            <div class="form-group">
+                <label>Density:</label>
+                <input type="text">
+                <span class="unit">kg/m³</span>
+            </div>
+            <div class="form-group">
+                <label>Flash Point:</label>
+                <input type="text">
+                <span class="unit">°C</span>
+            </div>
+            <div class="form-group">
+                <label>Sulphur:</label>
+                <input type="text">
+                <span class="unit">ppm</span>
+            </div>
+            <div class="form-group">
+                <label>Octane no.:</label>
+                <input type="text">
+                <span class="unit">RON</span>
+            </div>
+            <div class="form-group">
+                <label>Water:</label>
+                <input type="text">
+                <span class="unit">ppm</span>
+            </div>
+
+            <button class="test-button">Test</button>
+        </div>
+    </div>
+</body>
+
+</html>

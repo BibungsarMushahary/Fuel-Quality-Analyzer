@@ -1,0 +1,154 @@
+/* Full page layout */
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(to bottom, #007bff, #004ba0);
+    font-family: Arial, sans-serif;
+}
+
+/* Centered login card */
+.container {
+    background-color: #008cff;
+    padding: 40px 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    border: 2px solid #ffffff;
+    text-align: center;
+    width: 100%;
+    max-width: 350px;
+    transition: all 0.3s ease;
+}
+
+/* Header style */
+.container h2 {
+    color: #ffffff;
+    font-size: 24px;
+    margin-bottom: 25px;
+}
+
+/* Input fields */
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    background: #e6f0ff;
+    outline: none;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Button */
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #000000;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+/* Button hover effect */
+button:hover {
+    background-color: #222;
+}
+
+/* Optional: Flash message styling */
+.flash-message {
+    color: #ffdddd;
+    background-color: rgba(255, 0, 0, 0.2);
+    border: 1px solid red;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+/* Header */
+.test- {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+
+.test-container h2 {
+    color: white;
+    display: flex;
+    justify-content: center;
+
+}
+
+/* Fuel selection */
+.fuel-type {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.fuel-type label {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* Inner box for form */
+.form-box {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #000000;
+}
+
+/* Form labels and inputs */
+.form-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0;
+}
+
+.form-group label {
+    width: 120px;
+    font-weight: bold;
+}
+
+.form-group input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    background: #c0c0c0;
+    margin: 0 10px;
+}
+
+.unit {
+    width: 40px;
+    text-align: left;
+    font-weight: bold;
+}
+
+/* Submit button */
+.test-button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 10px;
+    background-color: #000000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.test-button:hover {
+    background-color: #000000;
+}
