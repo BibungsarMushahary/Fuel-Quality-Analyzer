@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fuel Test Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        <h2>Test Result</h2>
+        <div class="result-box">
+            <h3>Fuel Sample Summary</h3>
+            <table>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>Fuel Type</td>
+                    <td>{{ data.fuel_type }}</td>
+                    <td><span class="ok">✅ OK</span></td>
+                </tr>
+                <tr>
+                    <td>Octane Number</td>
+                    <td>{{ data.octane_number }}</td>
+                    <td><span class="low">❌ Too Low</span></td>
+                </tr>
+                <tr>
+                    <td>Density</td>
+                    <td>{{ data.density }}</td>
+                    <td><span class="borderline">⚠️ Borderline</span></td>
+                </tr>
+                <tr>
+                    <td>Water Content</td>
+                    <td>{{ data.water_content }}</td>
+                    <td><span class="high">❌ High</span></td>
+                </tr>
+            </table>
+
+            <div class="warning">
+                ⚠️ <strong>Quality Status: <span style="color:orangered">Adulterated</span></strong><br>
+                This fuel sample has deviations from standard quality levels.
+                Machine learning analysis suggests the fuel may be adulterated with kerosene or contaminated with water.
+            </div>
+
+            <div class="recommendations">
+                <h4>Recommendations to Improve Quality</h4>
+                <p>✔️ <strong>Issue Detected:</strong></p>
+                <ul>
+                    <li>Low octane rating → Less efficient combustion, potential engine knocking</li>
+                    <li>Elevated water content → Risk of corrosion and injector damage</li>
+                </ul>
+
+                <p>✅ <strong>Suggested Actions:</strong></p>
+                <ul>
+                    <li>✔ Add MTBE-based octane booster to improve octane number</li>
+                    <li>✔ Use a water separator or coalescing filter to remove water contamination</li>
+                    <li style="color:red;">❌ Do not use this batch until retested</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
