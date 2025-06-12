@@ -1,0 +1,81 @@
+body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #0077ff, #001f66);
+    font-family: Arial, sans-serif;
+    color: black;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.wrapper {
+    margin-top: 30px;
+    text-align: center;
+}
+
+h2 {
+    color: white;
+    margin-bottom: 20px;
+}
+
+.result-box {
+    background: #f2f2f2;
+    padding: 20px 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    text-align: left;
+    box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.3);
+}
+
+.result-box h3 {
+    margin-top: 0;
+    color: #222;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+}
+
+table, th, td {
+    padding: 10px;
+    border: none;
+    text-align: left;
+}
+
+th {
+    background-color: #ddd;
+}
+
+.ok {
+    color: green;
+}
+
+.low {
+    color: red;
+}
+
+.high {
+    color: red;
+}
+
+.borderline {
+    color: orange;
+}
+
+.warning {
+    margin-top: 20px;
+    background: #fff3cd;
+    border-left: 6px solid #ffcc00;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.recommendations {
+    margin-top: 20px;
+    font-size: 15px;
+}
