@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Output page</h1>
+
+<h2>Test Result</h2>
+
+<h3>Fuel Sample Summary</h3>
+
+<table class="result-table">
+    <tr>
+        <th>Property</th>
+        <th>Value</th>
+        <th>Status</th>
+    </tr>
+    <tr>
+        <td>Fuel Type</td>
+        <td>{{ fuel_type }}</td>
+        <td class="ok">OK</td>
+    </tr>
+    <tr>
+        <td>Viscosity</td>
+        <td>{{ parameters.viscosity }} cSt</td>
+        <td class="{{ 'error' if parameters.viscosity < 1.5 or parameters.viscosity > 4.0 else 'ok' }}">
+            {% if parameters.viscosity < 1.5 %}Too Low
+            {% elif parameters.viscosity > 4.0 %}Too High
+            {% else %}OK
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td>Density</td>
+        <td>{{ parameters.density }} kg/m³</td>
+        <td class="{{ 'warning' if not (770 <= parameters.density <= 850) else 'ok' }}">
+            {{ 'Out of Range' if not (770 <= parameters.density <= 850) else 'OK' }}
+        </td>
+    </tr>
+    <tr>
+        <td>Flash Point</td>
+        <td>{{ parameters.flash_point }} °C</td>
+        <td class="{{ 'error' if parameters.flash_point < 55 else 'warning' if parameters.flash_point > 100 else 'ok' }}">
+            {% if parameters.flash_point < 55 %}Too Low
+            {% elif parameters.flash_point > 100 %}Too High
+            {% else %}OK
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td>Sulphur Content</td>
+        <td>{{ parameters.sulphur_content }} ppm</td>
+        <td class="{{ 'error' if parameters.sulphur_content > 50 else 'ok' }}">
+            {{ 'High' if parameters.sulphur_content > 50 else 'OK' }}
+        </td>
+    </tr>
+    <tr>
+        <td>Octane Number</td>
+        <td>{{ parameters.octane_content }} RON</td>
+        <td class="{{ 'error' if parameters.octane_content < 87 else 'ok' }}">
+            {{ 'Too Low' if parameters.octane_content < 87 else 'OK' }}
+        </td>
+    </tr>
+    <tr>
+        <td>Water Content</td>
+        <td>{{ parameters.water_content }} ppm</td>
+        <td class="{{ 'error' if parameters.water_content > 50 else 'ok' }}">
+            {{ 'High' if parameters.water_content > 50 else 'OK' }}
+        </td>
+    </tr>
+</table>
+
+<div class="quality-status">
+    <p><strong>Quality Status</strong>: <span class="{{ 'error' if quality_status == 'Adulterated' else 'ok' }}">{{ quality_status }}</span></p>
+    {% if quality_status == 'Adulterated' %}
+    <p>This fuel sample has deviations from standard quality levels. Machine learning analysis suggests the fuel may be adulterated or contaminated.</p>
+    {% endif %}
+</div>
+
+<div class="recommendations">
+    <h4>Recommendations to Improve Quality</h4>
+    
+    {% if issues %}
+    <p><strong>Issues Detected</strong>:</p>
+    <ul>
+        {% for issue in issues %}
+        <li>{{ issue }}</li>
+        {% endfor %}
+    </ul>
+    
+    {% if warnings %}
+    <p><strong>Potential Risks</strong>:</p>
+    <ul class="warning-list">
+        {% for warning in warnings %}
+        <li>⚠️ {{ warning }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
+    <p><strong>Suggested Actions</strong>:</p>
+    <ul class="action-list">
+        {% for recommendation in recommendations %}
+        <li>✓ {{ recommendation }}</li>
+        {% endfor %}
+        <li>✗ Do not use this batch until retested if multiple issues are present</li>
+    </ul>
+    {% else %}
+    <p>No quality issues detected. Fuel meets all standard requirements.</p>
+    {% endif %}
+</div>
+
+<div class="ml-result">
+    <p><strong>Machine Learning Analysis</strong>:</p>
+    <p>Prediction: <strong>{{ result.prediction }}</strong> (Confidence: {{ result.confidence }})</p>
+</div>
+
+<a href="/" class="back-button">Test Another Sample</a>
+
+{% if result.prediction == 'PASS' and days_until_degradation %}
+<div class="degradation-prediction">
+    <h3>Fuel Stability Forecast</h3>
+    
+    <div class="stability-metrics">
+        <div class="metric">
+            <span class="metric-label">Estimated Stable Period:</span>
+            <span class="metric-value {% if days_until_degradation < 30 %}danger
+                                  {% elif days_until_degradation < 90 %}warning
+                                  {% else %}safe{% endif %}">
+                {{ days_until_degradation }} days
+            </span>
+        </div>
+        
+        <div class="metric">
+            <span class="metric-label">Storage Grade:</span>
+            <span class="metric-value grade-{{ storage_grade.0.lower() }}">
+                {{ storage_grade }}
+            </span>
+        </div>
+    </div>
+    
+    <div class="degradation-factors">
+        <h4>Key Degradation Factors</h4>
+        <div class="factors-grid">
+            {% for factor in degradation_factors %}
+            <div class="factor-item">
+                <span class="factor-icon">⚠️</span>
+                <span class="factor-text">{{ factor }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="stability-timeline">
+        <h4>Projected Quality Timeline</h4>
+        <div class="timeline-bar">
+            <div class="timeline-progress" 
+                 style="width: {{ [days_until_degradation/270*100, 100]|min }}%">
+                <div class="timeline-marker current">Now</div>
+                <div class="timeline-marker end">{{ days_until_degradation }} days</div>
+            </div>
+        </div>
+        <div class="timeline-labels">
+            <span>Optimal</span>
+            <span>Acceptable</span>
+            <span>Degraded</span>
+        </div>
+    </div>
+    
+    <div class="preservation-tips">
+        <h4>Preservation Recommendations</h4>
+        <ul class="tips-list">
+            {% if "High water content" in degradation_factors %}
+            <li>✓ Install water-absorbing filters in storage tanks</li>
+            {% endif %}
+            {% if "High storage temp" in degradation_factors %}
+            <li>✓ Paint storage tanks white to reflect sunlight</li>
+            {% endif %}
+            {% if "plastic" in degradation_factors|join %}
+            <li>✓ Replace plastic containers with metal alternatives</li>
+            {% endif %}
+            <li>✓ Use fuel stabilizers for storage beyond 30 days</li>
+            <li>✓ Implement first-in-first-out (FIFO) inventory rotation</li>
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+

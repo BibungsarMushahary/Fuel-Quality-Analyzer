@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Test Fuel Quality</h1>
+
+<form action="/analyze" method="post">
+    <div class="fuel-type-selector">
+        <label><input type="radio" name="fuel_type" value="Petrol" checked> Petrol</label>
+        <label><input type="radio" name="fuel_type" value="Diesel"> Diesel</label>
+        <label><input type="radio" name="fuel_type" value="Kerosene"> Kerosene</label>
+    </div>
+
+    <div class="parameters">
+        <h2>Set the Parameters:</h2>
+        <table>
+            <tr>
+                <th>Viscosity</th>
+                <td><input type="number" step="0.01" name="viscosity" required> cSt</td>
+            </tr>
+            <tr>
+                <th>Density</th>
+                <td><input type="number" step="0.001" name="density" required> kg/m³</td>
+            </tr>
+            <tr>
+                <th>Flash Point</th>
+                <td><input type="number" name="flash_point" required> °C</td>
+            </tr>
+            <tr>
+                <th>Sulphur</th>
+                <td><input type="number" step="0.1" name="sulphur_content" required> ppm</td>
+            </tr>
+            <tr>
+                <th>Octane no.</th>
+                <td><input type="number" name="octane_content" required> RON</td>
+            </tr>
+            <tr>
+                <th>Water</th>
+                <td><input type="number" step="0.1" name="water_content" required> ppm</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="storage-conditions">
+        <h3>Storage Conditions</h3>
+        <table>
+            <tr>
+                <th>Temperature (°C)</th>
+                <td><input type="number" name="storage_temp" value="25" required></td>
+            </tr>
+            <tr>
+                <th>Container Type</th>
+                <td>
+                    <select name="container_type" required>
+                        <option value="metal">Metal</option>
+                        <option value="plastic">Plastic</option>
+                        <option value="fiberglass">Fiberglass</option>
+                        <option value="underground">Underground</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>Headspace (% empty)</th>
+                <td><input type="number" name="headspace" min="0" max="100" value="10"></td>
+            </tr>
+        </table>
+    </div>
+
+    <button type="submit" class="test-button">Test</button>
+</form>
+{% endblock %}
