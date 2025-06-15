@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Initialize Flask app
+#  Flask app
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fuel_analyzer.db'
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
@@ -78,13 +78,13 @@ def send_test_results(recipient_email, username, test_data, result, degradation_
     try:
         print(f"[INFO] Sending email from {sender_email} to {recipient_email}...")
 
-        # Create email message
+    
         message = MIMEMultipart()
         message["From"] = f"Fuel Analyzer <{sender_email}>"
         message["To"] = recipient_email
         message["Subject"] = f"Fuel Test Results: {result['prediction']}"
 
-        # Create plain text version for attachment
+        
         txt_report = f"""Fuel Quality Report for {username}
 
 Test Result: {result['prediction']} ({result['confidence']})
@@ -114,7 +114,7 @@ Storage Grade: {degradation_info[2]}
 Thank you for using Fuel Analyzer.
 """
 
-        # HTML version (in email body)
+    
         html_body = f"""
         <html>
         <body>
@@ -163,16 +163,15 @@ Thank you for using Fuel Analyzer.
         </html>
         """
 
-        # Attach HTML body
+    
         message.attach(MIMEText(html_body, "html"))
 
-        # Create a temporary text file
+    
         with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".txt") as f:
             f.write(txt_report)
             f.flush()
             file_path = f.name
 
-        # Attach the .txt file
         with open(file_path, "rb") as file:
             part = MIMEBase("application", "octet-stream")
             part.set_payload(file.read())
