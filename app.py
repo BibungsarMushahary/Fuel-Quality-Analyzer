@@ -297,13 +297,15 @@ def predict_fuel_degradation(fuel_type, parameters, storage_conditions):
         flash_impact = 1.0
     degradation_rate *= flash_impact
 
-    # Octane/cetane impact
+    # Octane/cetane impact - FIXED: Added default value and proper handling
+    octane_impact = 1.0  # Default impact for all fuel types
     if fuel_type == 'Petrol':
         octane_impact = 1 + (95 - parameters['octane_content']) * 0.02
         if parameters['octane_content'] < 95:
             degradation_factors.append(f"Lower octane ({parameters['octane_content']}RON)")
     elif fuel_type == 'Diesel':
         octane_impact = 1 + (50 - parameters.get('cetane_content', 50)) * 0.01
+    # For Kerosene and other fuel types, octane_impact remains 1.0
     degradation_rate *= octane_impact
 
     # Storage conditions impact

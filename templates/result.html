@@ -5,7 +5,20 @@
 {% block content %}
 <div style="background: linear-gradient(to bottom right, #007bff, #062966); padding: 40px; min-height: 100vh; font-family: 'Segoe UI', sans-serif;">
     <div style="background-color: #f5f5f5; border-radius: 20px; padding: 30px; max-width: 700px; margin: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-        <h2 style="text-align: center; color: #ffffff; background-color: #007bff; padding: 10px 0; border-radius: 10px;">Test Result</h2>
+        <!-- Pass/Fail Banner -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            {% if result.prediction == 'PASS' %}
+                <div style="background-color: #28a745; color: white; padding: 15px; border-radius: 10px; font-size: 24px; font-weight: bold;">
+                    ✅ PASSED ({{ result.confidence }})
+                </div>
+                <p style="color: #28a745; margin-top: 10px;">This fuel meets quality standards</p>
+            {% else %}
+                <div style="background-color: #dc3545; color: white; padding: 15px; border-radius: 10px; font-size: 24px; font-weight: bold;">
+                    ❌ FAILED ({{ result.confidence }})
+                </div>
+                <p style="color: #dc3545; margin-top: 10px;">This fuel does not meet quality standards</p>
+            {% endif %}
+        </div>
 
         <h3 style="margin-top: 20px;">Fuel Sample Summary</h3>
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
@@ -20,47 +33,53 @@
                 <tr>
                     <td style="padding: 10px;">Fuel Type</td>
                     <td style="padding: 10px;">{{ fuel_type }}</td>
-                    <td style="padding: 10px;">✅ OK</td>
+                    <td style="padding: 10px;">{% if fuel_type %}✅ OK{% else %}⚠ Missing{% endif %}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px;">Octane Number</td>
                     <td style="padding: 10px;">{{ parameters.octane_content }}</td>
-                    <td style="padding: 10px; color: red;">❌ Too Low</td>
+                    <td style="padding: 10px; {% if parameters.octane_content < 87 %}color: red;">❌ Too Low{% else %}color: green;">✅ OK{% endif %}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px;">Density</td>
                     <td style="padding: 10px;">{{ parameters.density }} kg/m³</td>
-                    <td style="padding: 10px; color: orange;">⚠ Borderline</td>
+                    <td style="padding: 10px; {% if parameters.density < 770 or parameters.density > 850 %}color: red;">❌ Out of Range{% else %}color: green;">✅ OK{% endif %}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px;">Water Content</td>
                     <td style="padding: 10px;">{{ parameters.water_content }} ppm</td>
-                    <td style="padding: 10px; color: red;">❌ High</td>
+                    <td style="padding: 10px; {% if parameters.water_content > 50 %}color: red;">❌ High{% else %}color: green;">✅ OK{% endif %}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px;">Flash Point</td>
                     <td style="padding: 10px;">{{ parameters.flash_point }} °C</td>
-                    <td style="padding: 10px; color: red;">❌ Low</td>
+                    <td style="padding: 10px; {% if parameters.flash_point < 55 %}color: red;">❌ Low{% elif parameters.flash_point > 100 %}color: orange;">⚠ High{% else %}color: green;">✅ OK{% endif %}</td>
                 </tr>
                 <tr>
                     <td style="padding: 10px;">Sulphur Content</td>
                     <td style="padding: 10px;">{{ parameters.sulphur_content }} ppm</td>
-                    <td style="padding: 10px; color: red;">❌ High</td>
+                    <td style="padding: 10px; {% if parameters.sulphur_content > 50 %}color: red;">❌ High{% else %}color: green;">✅ OK{% endif %}</td>
                 </tr>
             </tbody>
         </table>
 
         <div style="margin-top: 20px;">
-            <p style="color: #d9534f; font-weight: bold;">⚠ Quality Status: {{ quality_status }}</p>
+            <p style="color: {% if result.prediction == 'PASS' %}#28a745{% else %}#d9534f{% endif %}; font-weight: bold;">
+                Quality Status: {{ quality_status }}
+            </p>
             <p style="margin-top: 5px;">
-                This fuel sample has deviations from standard quality levels.
-                Machine learning analysis suggests the fuel may be adulterated or contaminated.
+                {% if result.prediction == 'PASS' %}
+                    This fuel sample meets standard quality levels.
+                {% else %}
+                    This fuel sample has deviations from standard quality levels.
+                    Machine learning analysis suggests the fuel may be adulterated or contaminated.
+                {% endif %}
             </p>
         </div>
 
         {% if issues %}
         <div style="margin-top: 20px;">
-            <h4 style="margin-bottom: 10px;">✅ Issue Detected:</h4>
+            <h4 style="margin-bottom: 10px;">⚠ Issues Detected:</h4>
             <ul>
                 {% for issue in issues %}
                 <li>{{ issue }}</li>
@@ -71,24 +90,42 @@
 
         {% if recommendations %}
         <div style="margin-top: 20px;">
-            <h4 style="margin-bottom: 10px;">✅ Suggested Actions:</h4>
+            <h4 style="margin-bottom: 10px;">🔧 Recommended Actions:</h4>
             <ul>
                 {% for rec in recommendations %}
-                <li>✔ {{ rec }}</li>
+                <li>{{ rec }}</li>
                 {% endfor %}
-                <li style="color: red;">❌ Do not use this batch until retested</li>
+                {% if result.prediction == 'FAIL' %}
+                <li style="color: red; font-weight: bold;">❌ Do not use this batch until retested</li>
+                {% endif %}
             </ul>
         </div>
         {% endif %}
 
         {% if warnings %}
         <div style="margin-top: 20px;">
-            <h4 style="color: #8a6d3b;">Warnings:</h4>
+            <h4 style="color: #8a6d3b;">⚠ Warnings:</h4>
             <ul>
                 {% for warn in warnings %}
                 <li>{{ warn }}</li>
                 {% endfor %}
             </ul>
+        </div>
+        {% endif %}
+
+        {% if result.prediction == 'PASS' and days_until_degradation %}
+        <div style="margin-top: 20px; background-color: #e7f3fe; padding: 15px; border-radius: 8px; border-left: 5px solid #007bff;">
+            <h4 style="margin-top: 0; color: #0056b3;">Storage Analysis</h4>
+            <p><strong>Days Until Degradation:</strong> {{ days_until_degradation }} days</p>
+            <p><strong>Storage Grade:</strong> {{ storage_grade }}</p>
+            {% if degradation_factors %}
+            <p><strong>Degradation Factors:</strong></p>
+            <ul>
+                {% for factor in degradation_factors %}
+                <li>{{ factor }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
         </div>
         {% endif %}
 
