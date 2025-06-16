@@ -20,7 +20,21 @@
             {% endif %}
         </div>
 
-        <h3 style="margin-top: 20px;">Fuel Sample Summary</h3>
+        <!-- Fuel Type Display -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #333;">Fuel Type:
+                <span style="color: {% if fuel_type and fuel_type != 'Not Specified' %}#007bff{% else %}#dc3545{% endif %};">
+                    {{ fuel_type if fuel_type and fuel_type != 'Not Specified' else 'Not Specified' }}
+                </span>
+            </h3>
+            {% if not fuel_type or fuel_type == 'Not Specified' %}
+                <p style="color: #dc3545; font-size: 14px; margin-top: 5px;">
+                    ⚠️ Please specify fuel type for accurate analysis
+                </p>
+            {% endif %}
+        </div>
+
+        <h3 style="margin-top: 20px;">Fuel Sample Analysis</h3>
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
                 <tr style="background-color: #ddd;">
@@ -30,11 +44,6 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td style="padding: 10px;">Fuel Type</td>
-                    <td style="padding: 10px;">{{ fuel_type }}</td>
-                    <td style="padding: 10px;">{% if fuel_type %}✅ OK{% else %}⚠ Missing{% endif %}</td>
-                </tr>
                 <tr>
                     <td style="padding: 10px;">Octane Number</td>
                     <td style="padding: 10px;">{{ parameters.octane_content }}</td>
@@ -60,6 +69,11 @@
                     <td style="padding: 10px;">{{ parameters.sulphur_content }} ppm</td>
                     <td style="padding: 10px; {% if parameters.sulphur_content > 50 %}color: red;">❌ High{% else %}color: green;">✅ OK{% endif %}</td>
                 </tr>
+                <tr>
+                    <td style="padding: 10px;">Viscosity</td>
+                    <td style="padding: 10px;">{{ parameters.viscosity }} cSt</td>
+                    <td style="padding: 10px; {% if parameters.viscosity < 1.5 or parameters.viscosity > 4.0 %}color: red;">❌ Out of Range{% else %}color: green;">✅ OK{% endif %}</td>
+                </tr>
             </tbody>
         </table>
 
@@ -78,8 +92,8 @@
         </div>
 
         {% if issues %}
-        <div style="margin-top: 20px;">
-            <h4 style="margin-bottom: 10px;">⚠ Issues Detected:</h4>
+        <div style="margin-top: 20px; background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 5px solid #ffc107;">
+            <h4 style="margin-top: 0; color: #856404;">⚠ Issues Detected:</h4>
             <ul>
                 {% for issue in issues %}
                 <li>{{ issue }}</li>
@@ -89,8 +103,8 @@
         {% endif %}
 
         {% if recommendations %}
-        <div style="margin-top: 20px;">
-            <h4 style="margin-bottom: 10px;">🔧 Recommended Actions:</h4>
+        <div style="margin-top: 20px; background-color: #d4edda; padding: 15px; border-radius: 8px; border-left: 5px solid #28a745;">
+            <h4 style="margin-top: 0; color: #155724;">🔧 Recommended Actions:</h4>
             <ul>
                 {% for rec in recommendations %}
                 <li>{{ rec }}</li>
@@ -103,8 +117,8 @@
         {% endif %}
 
         {% if warnings %}
-        <div style="margin-top: 20px;">
-            <h4 style="color: #8a6d3b;">⚠ Warnings:</h4>
+        <div style="margin-top: 20px; background-color: #f8d7da; padding: 15px; border-radius: 8px; border-left: 5px solid #dc3545;">
+            <h4 style="margin-top: 0; color: #721c24;">⚠ Warnings:</h4>
             <ul>
                 {% for warn in warnings %}
                 <li>{{ warn }}</li>
@@ -113,7 +127,7 @@
         </div>
         {% endif %}
 
-        {% if result.prediction == 'PASS' and days_until_degradation %}
+        {% if days_until_degradation %}
         <div style="margin-top: 20px; background-color: #e7f3fe; padding: 15px; border-radius: 8px; border-left: 5px solid #007bff;">
             <h4 style="margin-top: 0; color: #0056b3;">Storage Analysis</h4>
             <p><strong>Days Until Degradation:</strong> {{ days_until_degradation }} days</p>
@@ -130,7 +144,7 @@
         {% endif %}
 
         <div style="text-align: center; margin-top: 30px;">
-            <a href="/" style="padding: 10px 20px; background-color: #007bff; color: white; border-radius: 5px; text-decoration: none;">New Test</a>
+            <a href="/" style="padding: 10px 20px; background-color: #007bff; color: white; border-radius: 5px; text-decoration: none; margin-right: 10px;">New Test</a>
         </div>
     </div>
 </div>

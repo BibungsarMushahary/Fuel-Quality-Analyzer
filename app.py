@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from dotenv import load_dotenv
-
+from flask_migrate import Migrate
 # Load environment variables
 load_dotenv()
 
@@ -23,8 +23,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fuel_analyzer.db'
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
 db = SQLAlchemy(app)
-
-
+migrate = Migrate(app, db)
 # Database Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -37,7 +36,6 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-
 
 class TestResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,9 +51,9 @@ class TestResult(db.Model):
     confidence = db.Column(db.String(20))
     days_until_degradation = db.Column(db.Integer)
     storage_grade = db.Column(db.String(20))
+    degradation_factors = db.Column(db.String)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-#send test results
 def send_test_results(recipient_email, username, test_data, result, degradation_info, issues=None, recommendations=None, warnings=None):
     import traceback
     from email.mime.base import MIMEBase
@@ -101,6 +99,7 @@ Water: {test_data['water_content']} ppm
 --- Storage Analysis ---
 Days Until Degradation: {degradation_info[0]}
 Storage Grade: {degradation_info[2]}
+Degradation Factors: {', '.join(degradation_info[1]) if degradation_info[1] else 'None'}
 
 --- Detected Issues ---
 {chr(10).join(f"- {issue}" for issue in issues) if issues else "None"}
@@ -141,6 +140,7 @@ Thank you for using Fuel Analyzer.
             <ul>
                 <li>Days Until Degradation: {degradation_info[0]}</li>
                 <li>Storage Grade: {degradation_info[2]}</li>
+                <li>Degradation Factors: {', '.join(degradation_info[1]) if degradation_info[1] else 'None'}</li>
             </ul>
 
             <h4>Detected Issues</h4>
@@ -166,7 +166,7 @@ Thank you for using Fuel Analyzer.
         # Attach HTML body
         message.attach(MIMEText(html_body, "html"))
 
-        # Create a temporary text file
+        # Creates a temporary text file
         with tempfile.NamedTemporaryFile(mode="w+", delete=False, suffix=".txt") as f:
             f.write(txt_report)
             f.flush()
@@ -183,6 +183,7 @@ Thank you for using Fuel Analyzer.
         # Send email
         with smtplib.SMTP(smtp_server, smtp_port, timeout=15) as server:
             server.starttls()
+
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, recipient_email, message.as_string())
 
@@ -192,10 +193,8 @@ Thank you for using Fuel Analyzer.
     except Exception:
         print("[ERROR] Email sending failed:")
         traceback.print_exc()
-
     return False
 
-# Fuel Quality Analysis Class
 class FuelQualityAnalyzer:
     def __init__(self):
         model_path = 'models/fuel_quality_model.pkl'
@@ -256,8 +255,6 @@ class FuelQualityAnalyzer:
             'parameters': input_data
         }
 
-
-# Prediction function
 def predict_fuel_degradation(fuel_type, parameters, storage_conditions):
     BASE_STABILITY = {
         'Petrol': 90,  # 3 months
@@ -297,15 +294,14 @@ def predict_fuel_degradation(fuel_type, parameters, storage_conditions):
         flash_impact = 1.0
     degradation_rate *= flash_impact
 
-    # Octane/cetane impact - FIXED: Added default value and proper handling
-    octane_impact = 1.0  # Default impact for all fuel types
+    # Octane/cetane impact
+    octane_impact = 1.0
     if fuel_type == 'Petrol':
         octane_impact = 1 + (95 - parameters['octane_content']) * 0.02
         if parameters['octane_content'] < 95:
             degradation_factors.append(f"Lower octane ({parameters['octane_content']}RON)")
     elif fuel_type == 'Diesel':
         octane_impact = 1 + (50 - parameters.get('cetane_content', 50)) * 0.01
-    # For Kerosene and other fuel types, octane_impact remains 1.0
     degradation_rate *= octane_impact
 
     # Storage conditions impact
@@ -350,14 +346,11 @@ def predict_fuel_degradation(fuel_type, parameters, storage_conditions):
 
     return int(days_until_degradation), degradation_factors, storage_grade
 
-
-# Routes
 @app.route('/')
 def home():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     return render_template('index.html')
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -375,7 +368,6 @@ def login():
         else:
             flash('Invalid credentials!', 'danger')
     return render_template('login.html')
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -397,7 +389,6 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
-
 @app.route('/analyze', methods=['POST'])
 def analyze():
     if 'user_id' not in session:
@@ -405,7 +396,7 @@ def analyze():
         return redirect(url_for('login'))
 
     analyzer = FuelQualityAnalyzer()
-    fuel_type = request.form.get('fuel_type')
+    fuel_type = request.form.get('fuel_type') or 'Not Specified'  # Default value added
 
     input_data = {
         'density': float(request.form['density']),
@@ -443,8 +434,7 @@ def analyze():
     # Flash point check
     if input_data['flash_point'] < 55:
         issues.append(f"Low flash point ({input_data['flash_point']} °C) - safety concern")
-        recommendations.append(
-            "Check for contamination with lighter fractions. Consider blending with higher flash point fuel")
+        recommendations.append("Check for contamination with lighter fractions. Consider blending with higher flash point fuel")
         warnings.append("Low flash point increases fire hazard during storage and handling")
     elif input_data['flash_point'] > 100:
         issues.append(f"High flash point ({input_data['flash_point']} °C) - may affect combustion")
@@ -469,9 +459,9 @@ def analyze():
         'headspace': float(request.form.get('headspace', 10))
     }
 
-    degradation_info = (None, [], "")
-    if result['prediction'] == 'PASS':
-        degradation_info = predict_fuel_degradation(fuel_type, input_data, storage_conditions)
+    degradation_info = predict_fuel_degradation(fuel_type, input_data, storage_conditions)
+    if not degradation_info or len(degradation_info) < 3:
+        degradation_info = (None, [], "Not Available")
 
     if issues:
         quality_status = "Adulterated"
@@ -489,7 +479,8 @@ def analyze():
         result=result['prediction'],
         confidence=result['confidence'],
         days_until_degradation=degradation_info[0],
-        storage_grade=degradation_info[2]
+        storage_grade=degradation_info[2],
+        degradation_factors=", ".join(degradation_info[1]) if degradation_info[1] else "None"
     )
     db.session.add(new_result)
     db.session.commit()
@@ -510,21 +501,21 @@ def analyze():
         flash('Failed to send email with results', 'warning')
 
     return render_template('result.html',
-                           result=result,
-                           fuel_type=fuel_type,
-                           quality_status=quality_status,
-                           issues=issues,
-                           recommendations=recommendations,
-                           warnings=warnings,
-                           parameters=input_data,
-                           days_until_degradation=degradation_info[0],
-                           degradation_factors=degradation_info[1],
-                           storage_grade=degradation_info[2])
+                       result=result,
+                       fuel_type=fuel_type,
+                       quality_status=quality_status,
+                       issues=issues,
+                       recommendations=recommendations,
+                       warnings=warnings,
+                       parameters=input_data,
+                       days_until_degradation=degradation_info[0],
+                       degradation_factors=degradation_info[1],
+                       storage_grade=degradation_info[2])
 
 @app.route('/test_email')
 def test_email():
     if send_test_results(
-        recipient_email="your@test.email",  # Change to your test email
+        recipient_email="your@test.email",
         username="Test User",
         test_data={
             'fuel_type': 'Petrol',
@@ -536,7 +527,7 @@ def test_email():
             'water_content': 20
         },
         result={'prediction': 'PASS', 'confidence': '95.0%'},
-        degradation_info=(90, [], "A (Excellent)")
+        degradation_info=(90, ["High storage temp (35°C)"], "A (Excellent)")
     ):
         return "Email sent successfully!"
     return "Failed to send email"
@@ -546,7 +537,6 @@ def logout():
     session.clear()
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
-
 
 if __name__ == '__main__':
     with app.app_context():

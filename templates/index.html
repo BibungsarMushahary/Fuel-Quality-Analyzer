@@ -8,14 +8,26 @@
 
         <h2 style="text-align: center; margin-bottom: 20px; color: #1e1e1e;">Test Fuel Quality</h2>
 
-        <!-- Fuel Type Selection -->
-        <div style="display: flex; justify-content: center; margin-bottom: 20px; gap: 20px;">
-            <label><input type="radio" name="fuel_type" value="Petrol" checked> Petrol</label>
-            <label><input type="radio" name="fuel_type" value="Diesel"> Diesel</label>
-            <label><input type="radio" name="fuel_type" value="Kerosene"> Kerosene</label>
-        </div>
-
         <form method="POST" action="{{ url_for('analyze') }}">
+            <!-- Fuel Type Selection - Now inside the form -->
+            <div style="text-align: center; margin-bottom: 20px; padding: 15px; background-color: #ffffff; border-radius: 10px;">
+                <h4 style="margin-bottom: 15px;">Fuel Type:</h4>
+                <div style="display: flex; justify-content: center; gap: 20px;">
+                    <label style="display: flex; align-items: center;">
+                        <input type="radio" name="fuel_type" value="Petrol" checked style="margin-right: 5px;">
+                        Petrol
+                    </label>
+                    <label style="display: flex; align-items: center;">
+                        <input type="radio" name="fuel_type" value="Diesel" style="margin-right: 5px;">
+                        Diesel
+                    </label>
+                    <label style="display: flex; align-items: center;">
+                        <input type="radio" name="fuel_type" value="Kerosene" style="margin-right: 5px;">
+                        Kerosene
+                    </label>
+                </div>
+            </div>
+
             <div style="border: 2px solid #ccc; border-radius: 15px; padding: 20px; background-color: #ffffff;">
                 <h4 style="margin-bottom: 20px;">Set the Parameters:</h4>
 
