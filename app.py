@@ -15,6 +15,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from dotenv import load_dotenv
 from flask_migrate import Migrate
+import secrets
+import string
+from itsdangerous import URLSafeTimedSerializer
 # Load environment variables
 load_dotenv()
 
@@ -537,6 +540,108 @@ def logout():
     session.clear()
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
+
+# Initialize password reset serializer
+def generate_token(email):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt='password-reset-salt')
+
+def verify_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(
+            token,
+            salt='password-reset-salt',
+            max_age=expiration
+        )
+    except:
+        return False
+    return email
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            # Generate reset token
+            token = generate_token(user.email)
+            reset_url = url_for('reset_password', token=token, _external=True)
+            
+            # Send reset email
+            send_password_reset_email(user.email, reset_url)
+            
+            flash('Password reset link has been sent to your email', 'info')
+            return redirect(url_for('login'))
+        
+        flash('Email not found', 'danger')
+    
+    return render_template('forgot_password.html')
+
+def send_password_reset_email(recipient_email, reset_url):
+    sender_email = os.getenv('SMTP_USERNAME')
+    sender_password = os.getenv('SMTP_PASSWORD')
+    smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+    smtp_port = int(os.getenv('SMTP_PORT', 587))
+
+    if not all([sender_email, sender_password]):
+        print("[ERROR] Email credentials are missing in .env")
+        return False
+
+    try:
+        message = MIMEMultipart()
+        message["From"] = f"Fuel Analyzer <{sender_email}>"
+        message["To"] = recipient_email
+        message["Subject"] = "Password Reset Request"
+
+        html = f"""
+        <html>
+        <body>
+            <h2>Password Reset Request</h2>
+            <p>You requested to reset your password. Click the link below to reset it:</p>
+            <p><a href="{reset_url}">{reset_url}</a></p>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, please ignore this email.</p>
+        </body>
+        </html>
+        """
+
+        message.attach(MIMEText(html, "html"))
+
+        with smtplib.SMTP(smtp_server, smtp_port, timeout=15) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, message.as_string())
+
+        return True
+    except Exception as e:
+        print(f"Error sending password reset email: {e}")
+        return False
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    email = verify_token(token)
+    if not email:
+        flash('Invalid or expired token', 'danger')
+        return redirect(url_for('forgot_password'))
+
+    if request.method == 'POST':
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        
+        if password != confirm_password:
+            flash('Passwords do not match', 'danger')
+            return redirect(request.url)
+        
+        user = User.query.filter_by(email=email).first()
+        if user:
+            user.set_password(password)
+            db.session.commit()
+            flash('Password updated successfully!', 'success')
+            return redirect(url_for('login'))
+    
+    return render_template('reset_password.html', token=token)
 
 if __name__ == '__main__':
     with app.app_context():
